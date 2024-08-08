@@ -203,6 +203,7 @@ class DexToken extends TokenContractV2 {
 
 
 class DexTokenHolder extends SmartContract {
+  dexAddress = PublicKey.fromBase58("B62qkc4LF9Axhv5xCVn1WfHhR1iK9S7tjEbaKGtYtBTxU1KzkQQ8pLp");
   // simpler circuit for redeeming liquidity -- direct trade between our token and lq token
   // it's incomplete, as it gives the user only the Y part for an lqXY token; but doesn't matter as there's no incentive to call it directly
   // see the more complicated method `redeemLiquidity` below which gives back both tokens, by calling this method,
@@ -210,7 +211,7 @@ class DexTokenHolder extends SmartContract {
   @method.returns(UInt64x2)
   async redeemLiquidityPartial(user: PublicKey, dl: UInt64) {
     // user burns dl, approved by the Dex main contract
-    let dex = new DexToken(addresses.dex);
+    let dex = new DexToken(this.dexAddress);
     let l = await dex.burnLiquidity(user, dl);
 
     // in return, we give dy back
@@ -302,6 +303,8 @@ let tokenIds = {
   Y: TokenId.derive(addresses.tokenY),
   lqXY: TokenId.derive(addresses.dex),
 };
+
+addresses.dex = PublicKey.fromBase58("B62qpawkNQQKwgxXn4QoVxgLwffq375HeJsR33WuhQ4EAXG5LMbM2MC");
 
 /**
  * Predefined accounts keys, labeled by the input strings. Useful for testing/debugging with consistent keys.

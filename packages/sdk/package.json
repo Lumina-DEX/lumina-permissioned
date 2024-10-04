@@ -5,7 +5,9 @@
 	"scripts": {
 		"build": "unbuild"
 	},
-	"files": ["dist"],
+	"files": [
+		"dist"
+	],
 	"exports": {
 		".": {
 			"types": "./dist/index.d.ts",
@@ -27,6 +29,7 @@
 		"gql.tada": "^1.8.9",
 		"o1js": "^1.8.0",
 		"urql": "^4.1.0",
+		"vue": "^3.5.11",
 		"xstate": "^5.18.2"
 	},
 	"devDependencies": {

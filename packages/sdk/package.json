@@ -1,0 +1,41 @@
+{
+	"name": "@zeko/sdk",
+	"type": "module",
+	"sideEffects": false,
+	"scripts": {
+		"build": "unbuild"
+	},
+	"files": ["dist"],
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"require": "./dist/index.cjs",
+			"import": "./dist/index.mjs"
+		},
+		"./vue": {
+			"types": "./dist/vue.d.ts",
+			"require": "./dist/vue.cjs",
+			"import": "./dist/vue.mjs"
+		}
+	},
+	"main": "./dist/index.cjs",
+	"types": "./dist/index.d.ts",
+	"dependencies": {
+		"@aurowallet/mina-provider": "^1.0.6",
+		"@urql/exchange-retry": "^1.3.0",
+		"@urql/vue": "^1.4.1",
+		"gql.tada": "^1.8.9",
+		"o1js": "^1.8.0",
+		"urql": "^4.1.0",
+		"xstate": "^5.18.2"
+	},
+	"devDependencies": {
+		"@types/bun": "latest",
+		"oxc-transform": "^0.30.5",
+		"rolldown": "^0.13.2",
+		"unbuild": "^2.0.0"
+	},
+	"peerDependencies": {
+		"typescript": "^5.0.0"
+	}
+}

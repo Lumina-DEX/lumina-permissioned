@@ -1,5 +1,5 @@
 import type { ChainInfoArgs, ProviderError } from "@aurowallet/mina-provider"
-import { Mina } from "o1js"
+import { Mina, PublicKey, TokenId } from "o1js"
 import type { Client } from "urql"
 import { assign, emit, enqueueActions, fromCallback, fromPromise, setup } from "xstate"
 import { FetchAccountBalanceQuery } from "../graphql/sequencer"
@@ -14,15 +14,28 @@ export type Networks = keyof typeof urls
 export type Urls = (typeof urls)[Networks]
 
 //TODO: Additional token support
-type Token = "MINA" | "ZEKO"
+
+type Balance = { testnet: Record<string, number>; mainnet: Record<string, number> }
 type TokenBalances = {
-	mina: { MINA: number; ZEKO?: number }
-	zeko: { MINA: number; ZEKO?: number }
+	mina: Balance
+	zeko: Balance
 }
 
+type CustomToken = { tokenAddress: string; name: string }
 export const supportedTokens = {
 	mina: "wSHV2S4qX9jFsLjQo8r1BsMLH2ZRKsZx6EJd1sbozGPieEC4Jf"
 } as const
+
+type FetchBalancePromise = { address: string; token?: CustomToken; networks: Networks[] }
+
+const toNumber = (n: unknown) => {
+	if (typeof n === "string") {
+		const t = Number.parseFloat(n)
+		return Number.isNaN(t) ? 0 : t
+	}
+	if (typeof n === "number") return n
+	return 0
+}
 
 export const createWalletMachine = ({
 	createMinaClient
@@ -32,8 +45,8 @@ export const createWalletMachine = ({
 			context: {} as {
 				accounts: string[]
 				currentNetwork: Networks
-				zekoBalances: Record<Token, number>
-				minaBalances: Record<Token, number>
+				zekoBalances: Balance
+				minaBalances: Balance
 			},
 			emitted: {} as { type: "NetworkChanged"; network: Networks },
 			events: {} as
@@ -41,7 +54,7 @@ export const createWalletMachine = ({
 				| { type: "WalletExtensionChangedNetwork"; network: Networks }
 				| { type: "Connect" }
 				| { type: "Disconnect" }
-				| { type: "FetchBalance" }
+				| { type: "FetchBalance"; token?: CustomToken; networks: Networks[] }
 		},
 		actors: {
 			/**
@@ -88,27 +101,34 @@ export const createWalletMachine = ({
 				}
 			}),
 			/**
-			 * Fetches the balance of the Mina wallet on Mina and Zeko.
+			 * Fetches the balance of the Mina wallet on given networks.
 			 */
-			fetchBalance: fromPromise<TokenBalances, { address: string }>(async ({ input }) => {
-				console.log({ input })
+			fetchBalance: fromPromise<TokenBalances, FetchBalancePromise>(async ({ input }) => {
 				const publicKey = input.address
-				const token = "mina" //TODO: Hardcoded for now
-				const settings = token ? { tokenId: supportedTokens[token], publicKey } : { publicKey }
+				const name = input.token?.name.toLocaleUpperCase() ?? "MINA"
+				const settings = input.token
+					? { tokenId: TokenId.derive(PublicKey.fromBase58(input.token.tokenAddress)), publicKey }
+					: { tokenId: supportedTokens.mina, publicKey }
 
-				//TODO: Hardcoded testnet
-				const minaClient = createMinaClient(urls["mina:testnet"])
-				const zekoClient = createMinaClient(urls["zeko:testnet"])
+				const queries = Object.fromEntries(
+					input.networks.map((network) => [
+						network,
+						createMinaClient(urls[network]).query(FetchAccountBalanceQuery, settings)
+					])
+				)
+				const results = await Promise.all(Object.values(queries))
 
-				const [minaResult, zekoResult] = await Promise.all([
-					minaClient.query(FetchAccountBalanceQuery, settings),
-					zekoClient.query(FetchAccountBalanceQuery, settings)
-				])
-				const toReadable = (balance: unknown) => Number(balance) / 1e9
-				const l1Mina = toReadable(minaResult.data?.account?.balance?.total) ?? 0
-				const l2Mina = toReadable(zekoResult.data?.account?.balance?.total) ?? 0
-
-				return { mina: { MINA: l1Mina }, zeko: { MINA: l2Mina } }
+				return Object.keys(queries).reduce((acc, network, index) => {
+					const result = results[index]
+					const balance = toNumber(result.data?.account?.balance?.total) / 1e9
+					const [layer, netType] = (network as Networks).split(":") as [
+						"mina" | "zeko",
+						"testnet" | "mainnet"
+					]
+					if (!acc[layer]) acc[layer] = { testnet: {}, mainnet: {} }
+					acc[layer][netType][name] = balance
+					return acc
+				}, {} as TokenBalances)
 			}),
 			/**
 			 * Changes the network of the Mina wallet.
@@ -142,8 +162,8 @@ export const createWalletMachine = ({
 		context: {
 			accounts: [""],
 			currentNetwork: "mina:testnet",
-			zekoBalances: { MINA: 0, ZEKO: 0 },
-			minaBalances: { MINA: 0, ZEKO: 0 }
+			zekoBalances: { testnet: { MINA: 0, ZEKO: 0 }, mainnet: { MINA: 0, ZEKO: 0 } },
+			minaBalances: { testnet: { MINA: 0, ZEKO: 0 }, mainnet: { MINA: 0, ZEKO: 0 } }
 		},
 		initial: "INIT",
 		invoke: { src: "listenToWalletChange" },
@@ -169,7 +189,13 @@ export const createWalletMachine = ({
 			FETCHING_BALANCE: {
 				invoke: {
 					src: "fetchBalance",
-					input: ({ context }) => ({ address: context.accounts[0] }),
+					input: ({ context, event }) => {
+						if (event.type === "FetchBalance") {
+							return { address: context.accounts[0], token: event.token, networks: event.networks }
+						}
+						//TODO: Hardcoded testnet
+						return { address: context.accounts[0], networks: ["mina:testnet", "zeko:testnet"] }
+					},
 					onDone: {
 						target: "READY",
 						actions: assign({

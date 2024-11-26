@@ -69,8 +69,8 @@ export const applyAccountUpdates = (tx: Mina.Transaction<false, false>, accountU
 	return tx
 }
 
-export const sendTransaction = async (tx: Mina.Transaction<false, false>) => {
-	const transaction = tx.toJSON()
+export const sendTransaction = async (tx: Mina.Transaction<false, false> | string) => {
+	const transaction = typeof tx === "string" ? tx : tx.toJSON()
 	// Sign the transaction with the wallet
 	const updateResult = await window.mina.sendTransaction({
 		onlySign: false, // only sign zkCommond, not broadcast.

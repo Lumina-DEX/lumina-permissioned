@@ -1,5 +1,5 @@
-import { Client, type ClientOptions, fetchExchange } from "@urql/vue"
-import type { Ref } from "vue"
+import { useActor } from "@xstate/react"
+import { Client, type ClientOptions, Provider, fetchExchange } from "urql"
 import type {
 	Actor,
 	ActorOptions,
@@ -9,14 +9,11 @@ import type {
 	RequiredActorOptionsKeys,
 	SnapshotFrom
 } from "xstate"
-
 import { getRetryExchange } from "./graphql/helpers"
 import { createLuminaDexMachine } from "./machines/luminadex"
-import { useActor } from "./machines/vue/useXstate"
 import { createWalletMachine } from "./machines/wallet"
 
-//xstate bindings
-export * from "./machines/vue/useXstate"
+export * from "@xstate/react"
 
 /**
  * GraphQL client
@@ -39,6 +36,8 @@ export const createMinaClient = (url: string) => {
 	return client
 }
 
+export { Provider }
+
 /**
  * Wallet
  *___________________________________________________________*/
@@ -46,7 +45,7 @@ export const createMinaClient = (url: string) => {
 const walletMachine = createWalletMachine({ createMinaClient })
 export { walletMachine }
 
-type WalletMachine = typeof walletMachine
+export type WalletMachine = typeof walletMachine
 
 export function useWallet(
 	...[options]: ConditionalRequired<
@@ -57,11 +56,11 @@ export function useWallet(
 		],
 		IsNotNever<RequiredActorOptionsKeys<WalletMachine>>
 	>
-): {
-	snapshot: Ref<SnapshotFrom<WalletMachine>>
-	send: (event: EventFromLogic<WalletMachine>) => void
-	actorRef: Actor<WalletMachine>
-} {
+): [
+	SnapshotFrom<WalletMachine>,
+	(event: EventFromLogic<WalletMachine>) => void,
+	Actor<WalletMachine>
+] {
 	return useActor(walletMachine, options)
 }
 
@@ -83,10 +82,6 @@ export function useDex(
 		],
 		IsNotNever<RequiredActorOptionsKeys<DexMachine>>
 	>
-): {
-	snapshot: Ref<SnapshotFrom<DexMachine>>
-	send: (event: EventFromLogic<DexMachine>) => void
-	actorRef: Actor<DexMachine>
-} {
+): [SnapshotFrom<DexMachine>, (event: EventFromLogic<DexMachine>) => void, Actor<DexMachine>] {
 	return useActor(dexMachine, options)
 }

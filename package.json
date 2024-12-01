@@ -12,7 +12,7 @@
 		"format:all": "dprint check",
 		"format:all:fix": "dprint fmt --verbose",
 		"version": "changeset version && bun run format:all:fix",
-		"publish:all": "pnpm run build && pnpm publish -r --no-git-checks --access public"
+		"publish:all": "pnpm run build && changeset tag && pnpm publish -r --no-git-checks --access public"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "^1.9.4",

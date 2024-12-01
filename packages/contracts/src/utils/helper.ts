@@ -1,21 +1,5 @@
-import {
-  Account,
-  AccountUpdate,
-  AccountUpdateForest,
-  Bool,
-  DeployArgs,
-  Field,
-  method,
-  Permissions,
-  Provable,
-  PublicKey,
-  Reducer,
-  SmartContract,
-  State,
-  state,
-  UInt64,
-  VerificationKey,
-} from "o1js"
+import { UInt64 } from "o1js"
+
 import { mulDiv } from "../indexpool.js"
 
 export function getAmountOut(amountIn: number, balanceIn: number, balanceOut: number, percent: number) {
@@ -47,7 +31,7 @@ export function getAmountLiquidityOut(
   balanceA: number,
   balanceB: number,
   supply: number,
-  percent: number,
+  percent: number
 ) {
   const balanceAMax = balanceA + balanceA * percent / 100
   const balanceBMax = balanceB + balanceB * percent / 100
@@ -86,7 +70,7 @@ export function getAmountOutFromLiquidity(
   balanceA: number,
   balanceB: number,
   supply: number,
-  percent: number,
+  percent: number
 ) {
   const balanceAMin = balanceA - balanceA * percent / 100
   const balanceBMin = balanceB - balanceB * percent / 100

@@ -1,9 +1,11 @@
 import { FungibleToken, FungibleTokenAdmin } from "mina-fungible-token"
-import { AccountUpdate, Bool, fetchAccount, Mina, PrivateKey, PublicKey, UInt64, UInt8 } from "o1js"
+import { PublicKey } from "o1js"
+import { AccountUpdate, Bool, Mina, PrivateKey, UInt64, UInt8 } from "o1js"
 import { beforeAll, beforeEach, describe, expect, it } from "vitest"
-import { Faucet } from "../build/src/index"
 
-let proofsEnabled = false
+import { Faucet } from "../dist"
+
+const proofsEnabled = false
 
 describe("Faucet", () => {
   let deployerAccount: Mina.TestPublicKey,
@@ -73,16 +75,16 @@ describe("Faucet", () => {
     const txn = await Mina.transaction(deployerAccount, async () => {
       AccountUpdate.fundNewAccount(deployerAccount, 3)
       await zkTokenAdmin.deploy({
-        adminPublicKey: deployerAccount,
+        adminPublicKey: deployerAccount
       })
       await zkToken.deploy({
         symbol: "FAU",
-        src: "https://github.com/MinaFoundation/mina-fungible-token/blob/main/FungibleToken.ts",
+        src: "https://github.com/MinaFoundation/mina-fungible-token/blob/main/FungibleToken.ts"
       })
       await zkToken.initialize(
         zkTokenAdminAddress,
         UInt8.from(9),
-        Bool(false),
+        Bool(false)
       )
     })
     await txn.prove()
@@ -100,7 +102,7 @@ describe("Faucet", () => {
   })
 
   it("claim faucet", async () => {
-    let amt = UInt64.from(1000 * 10 ** 9)
+    const amt = UInt64.from(1000 * 10 ** 9)
     let txn = await Mina.transaction(senderAccount, async () => {
       await zkToken.mint(zkFaucetAddress, amt)
     })
@@ -117,7 +119,7 @@ describe("Faucet", () => {
     await txn.sign([bobKey]).send()
 
     const faucetAmount = UInt64.from(100 * 10 ** 9)
-    let balanceBob = Mina.getBalance(bobAccount, zkToken.deriveTokenId())
+    const balanceBob = Mina.getBalance(bobAccount, zkToken.deriveTokenId())
     expect(balanceBob.value).toEqual(faucetAmount.value)
 
     txn = await Mina.transaction(bobAccount, async () => {

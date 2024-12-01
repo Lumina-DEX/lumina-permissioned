@@ -1,6 +1,6 @@
 import { createStore } from "@xstate/store"
 import * as Comlink from "comlink"
-import { AccountUpdate, Bool, Mina, PrivateKey, PublicKey, UInt8, UInt64, fetchAccount } from "o1js"
+import { AccountUpdate, Bool, fetchAccount, Mina, PrivateKey, PublicKey, UInt64, UInt8 } from "o1js"
 
 import type {
 	Faucet,
@@ -10,7 +10,7 @@ import type {
 	PoolData,
 	PoolFactory,
 	PoolTokenHolder
-} from "@lumina/contracts"
+} from "@lumina-dex/contracts"
 
 import { MINA_ADDRESS } from "../constants"
 import { fetchFiles, readCache } from "./cache"
@@ -89,7 +89,7 @@ const loadContract = async () => {
 		FungibleToken,
 		FungibleTokenAdmin,
 		Faucet
-	} = await import("@lumina/contracts")
+	} = await import("@lumina-dex/contracts")
 
 	workerState.send({
 		type: "SetContracts",
@@ -569,7 +569,7 @@ const claim = async ({ user }: { user: string }) => {
 
 // Export worker API
 export const luminaDexWorker = {
-	//Unused
+	// Unused
 	// getBalances,
 	// getSupply,
 	// getTransactionJSON,
@@ -595,173 +595,9 @@ export const luminaDexWorker = {
 	claim
 }
 
-Comlink.expose(luminaDexWorker)
+// Shared Worker
+self.addEventListener("connect", (e) => {
+	Comlink.expose(luminaDexWorker, (e as MessageEvent).ports[0])
+})
 
 export type LuminaDexWorker = typeof luminaDexWorker
-
-//SetActiveInstanceToDevenet
-//SetActiveInstanceToZeko
-//GetActiveInstance
-// async function fetchMinaAccount({ publicKey58 }: PublicKey58Args) {
-//     return await fetchAccount({ publicKey: PublicKey.fromBase58(publicKey58) })
-// }
-// const getBalance = async (publicKey58: string) => {
-// 	const publicKey = PublicKey.fromBase58(publicKey58)
-// 	const balance = Mina.getBalance(publicKey)
-// 	return balance.toJSON()
-// }
-
-// const getBalanceToken = async (publicKey58: string, tokenAddress: string) => {
-// 	const publicKey = PublicKey.fromBase58(publicKey58)
-// 	const address = PublicKey.fromBase58(tokenAddress)
-// 	const tokenId = TokenId.derive(address)
-
-// 	const account = await fetchAccount({ publicKey, tokenId })
-// 	const balance = account?.account ? account.account.balance : UInt64.zero
-// 	return balance.toJSON()
-// }
-
-// const getSupply = async () => {
-// 	const pool = workerState.zk.pool
-// 	if (!pool) throw new Error("Zkapp not initialized")
-// 	const publicKey = pool.address
-// 	const tokenId = pool.deriveTokenId()
-// 	const acc = await fetchAccount({ publicKey, tokenId })
-// 	return acc.account?.balance.toJSON()
-// }
-
-// const getBalances = async (user: string) => {
-// 	const { zk } = workerState
-// 	if (!zk.token || !zk.pool) throw new Error("Instances not initialized")
-
-// 	const publicKey = PublicKey.fromBase58(user)
-
-// 	const [accMina, accToken, accLiquidity] = await Promise.all([
-// 		fetchAccount({ publicKey }),
-// 		fetchAccount({ publicKey, tokenId: zk.token.deriveTokenId() }),
-// 		fetchAccount({ publicKey, tokenId: zk.pool.deriveTokenId() })
-// 	])
-
-// 	return {
-// 		mina: accMina.account?.balance.toString() ?? "0",
-// 		token: accToken.account?.balance.toString() ?? "0",
-// 		liquidity: accLiquidity.account?.balance.toString() ?? "0"
-// 	}
-// }
-
-// const getTransactionJSON = () => workerState.transaction?.toJSON()
-
-// const getDeploymentKey = () => workerState.deployKey
-
-// export interface SwapFrom {
-// 	pool: string
-// 	user: string
-// 	amount: number
-// 	minOut: number
-// 	balanceOutMin: number
-// 	balanceInMax: number
-// }
-
-// const swapFromMina = async (args: SwapFrom) => {
-// 	const poolAddress = PublicKey.fromBase58(args.pool)
-// 	const zkPool = new workerState.contracts.Pool(poolAddress)
-// 	const token = await zkPool.token1.fetch()
-// 	if (!token) throw new Error("Token not found")
-// 	const zkToken = new workerState.contracts.FungibleToken(token)
-// 	const zkPoolHolder = new workerState.contracts.PoolTokenHolder(
-// 		poolAddress,
-// 		zkToken.deriveTokenId()
-// 	)
-
-// 	const amountIn = Math.trunc(args.amount)
-// 	const amountOut = Math.trunc(args.minOut)
-// 	const balanceOut = Math.trunc(args.balanceOutMin)
-// 	const balanceIn = Math.trunc(args.balanceInMax)
-
-// 	console.log("Network", Mina.getNetworkId())
-// 	console.log("Graphql", Mina.activeInstance.getNetworkState)
-
-// 	const publicKey = PublicKey.fromBase58(args.user)
-
-// 	await Promise.all([
-// 		fetchAccount({ publicKey: poolAddress }),
-// 		fetchAccount({ publicKey: poolAddress, tokenId: zkToken.deriveTokenId() }),
-// 		fetchAccount({ publicKey })
-// 	])
-
-// 	const [acc, accFront, accProtocol] = await Promise.all([
-// 		fetchAccount({ publicKey, tokenId: zkToken.deriveTokenId() }),
-// 		fetchAccount({ publicKey: TAX_RECEIVER, tokenId: zkToken.deriveTokenId() }),
-// 		fetchAccount({
-// 			publicKey: await getLuminaAddress(workerState.zk.poolData),
-// 			tokenId: zkToken.deriveTokenId()
-// 		})
-// 	])
-
-// 	const newAcc = acc.account ? 0 : 1
-// 	const newFront = accFront.account ? 0 : 1
-// 	const newAccProtocol = accProtocol.account ? 0 : 1
-
-// 	const total = newAcc + newFront + newAccProtocol
-
-// 	console.log("token", token?.toBase58())
-
-// 	const transaction = await Mina.transaction(publicKey, async () => {
-// 		AccountUpdate.fundNewAccount(publicKey, total)
-// 		await zkPoolHolder.swapFromMina(
-// 			TAX_RECEIVER,
-// 			//TODO: Add validation 0-15
-// 			UInt64.from(TAX_FEE_FRONTEND),
-// 			UInt64.from(amountIn),
-// 			UInt64.from(amountOut),
-// 			UInt64.from(balanceIn),
-// 			UInt64.from(balanceOut)
-// 		)
-// 		await zkToken?.approveAccountUpdate(zkPoolHolder.self)
-// 	})
-// 	return await proveTransaction(transaction)
-// }
-
-// const swapFromToken = async (args: SwapFrom) => {
-// 	const { poolKey, zkTokenId, zkPoolTokenKey, zkPool } = await getZkTokenFromPool(args.pool)
-
-// 	const amounts = {
-// 		in: Math.trunc(args.amount),
-// 		out: Math.trunc(args.minOut),
-// 		balanceOut: Math.trunc(args.balanceOutMin),
-// 		balanceIn: Math.trunc(args.balanceInMax)
-// 	}
-
-// 	const userKey = PublicKey.fromBase58(args.user)
-
-// 	await Promise.all([
-// 		fetchAccount({ publicKey: poolKey }),
-// 		fetchAccount({ publicKey: poolKey, tokenId: zkTokenId }),
-// 		fetchAccount({ publicKey: userKey }),
-// 		fetchAccount({ publicKey: userKey, tokenId: zkTokenId })
-// 	])
-
-// 	const accFront = await fetchAccount({ publicKey: TAX_RECEIVER })
-// 	const newFront = accFront.account ? 0 : 1
-// 	const accProtocol = await fetchAccount({ publicKey: LUMINA_KEY })
-// 	const newAccProtocol = accProtocol.account ? 0 : 1
-
-// 	const total = newFront + newAccProtocol
-
-// 	console.log("token", zkPoolTokenKey?.toBase58())
-
-// 	const transaction = await Mina.transaction(userKey, async () => {
-// 		AccountUpdate.fundNewAccount(userKey, total)
-// 		await zkPool.swapTokenForMina(
-// 			TAX_RECEIVER,
-// 			//TODO: Add validation 0-15
-// 			UInt64.from(TAX_FEE_FRONTEND),
-// 			UInt64.from(amounts.in),
-// 			UInt64.from(amounts.out),
-// 			UInt64.from(amounts.balanceIn),
-// 			UInt64.from(amounts.balanceOut)
-// 		)
-// 	})
-
-// 	return await proveTransaction(transaction)
-// }

@@ -1,20 +1,10 @@
-import { AccountUpdate, Bool, fetchAccount, Mina, PrivateKey, PublicKey, UInt64, UInt8 } from "o1js"
+import { PublicKey } from "o1js"
+import { AccountUpdate, Bool, Mina, PrivateKey, UInt64, UInt8 } from "o1js"
 import { beforeAll, beforeEach, describe, expect, it } from "vitest"
 
-import {
-  contractHash,
-  contractHolderHash,
-  Faucet,
-  FungibleToken,
-  FungibleTokenAdmin,
-  mulDiv,
-  Pool,
-  PoolData,
-  PoolFactory,
-  PoolTokenHolder,
-} from "../build/src/index"
+import { FungibleToken, FungibleTokenAdmin, Pool, PoolData, PoolFactory, PoolTokenHolder } from "../dist"
 
-let proofsEnabled = false
+const proofsEnabled = false
 
 describe("Pool Factory Mina", () => {
   let deployerAccount: Mina.TestPublicKey,
@@ -104,7 +94,7 @@ describe("Pool Factory Mina", () => {
       await zkPoolData.deploy({
         owner: bobAccount,
         protocol: aliceAccount,
-        delegator: dylanAccount,
+        delegator: dylanAccount
       })
     })
     await txn0.prove()
@@ -115,16 +105,16 @@ describe("Pool Factory Mina", () => {
       AccountUpdate.fundNewAccount(deployerAccount, 4)
       await zkApp.deploy({ symbol: "FAC", src: "https://luminadex.com/", poolData: zkPoolDataAddress })
       await zkTokenAdmin.deploy({
-        adminPublicKey: deployerAccount,
+        adminPublicKey: deployerAccount
       })
       await zkToken.deploy({
         symbol: "LTA",
-        src: "https://github.com/MinaFoundation/mina-fungible-token/blob/main/FungibleToken.ts",
+        src: "https://github.com/MinaFoundation/mina-fungible-token/blob/main/FungibleToken.ts"
       })
       await zkToken.initialize(
         zkTokenAdminAddress,
         UInt8.from(9),
-        Bool(false),
+        Bool(false)
       )
     })
     await txn.prove()
@@ -154,12 +144,12 @@ describe("Pool Factory Mina", () => {
       AccountUpdate.fundNewAccount(deployerAccount, 2)
       await zkTokenNew.deploy({
         symbol: "TWO",
-        src: "https://github.com/MinaFoundation/mina-fungible-token/blob/main/FungibleToken.ts",
+        src: "https://github.com/MinaFoundation/mina-fungible-token/blob/main/FungibleToken.ts"
       })
       await zkTokenNew.initialize(
         zkTokenAdminAddress,
         UInt8.from(9),
-        Bool(false),
+        Bool(false)
       )
     })
     await txn0.prove()
@@ -182,9 +172,9 @@ describe("Pool Factory Mina", () => {
     await txn2.prove()
     await txn2.sign([deployerKey, newTokenKey]).send()
 
-    let amt = UInt64.from(10 * 10 ** 9)
-    let amtToken = UInt64.from(50 * 10 ** 9)
-    let txn = await Mina.transaction(senderAccount, async () => {
+    const amt = UInt64.from(10 * 10 ** 9)
+    const amtToken = UInt64.from(50 * 10 ** 9)
+    const txn = await Mina.transaction(senderAccount, async () => {
       AccountUpdate.fundNewAccount(senderAccount, 1)
       await newPool.supplyFirstLiquidities(amt, amtToken)
     })
@@ -225,8 +215,8 @@ describe("Pool Factory Mina", () => {
   })
 
   it("cant transfer circulation supply", async () => {
-    let amt = UInt64.from(10 * 10 ** 9)
-    let amtToken = UInt64.from(50 * 10 ** 9)
+    const amt = UInt64.from(10 * 10 ** 9)
+    const amtToken = UInt64.from(50 * 10 ** 9)
     let txn = await Mina.transaction(senderAccount, async () => {
       AccountUpdate.fundNewAccount(senderAccount, 1)
       await zkPool.supplyFirstLiquidities(amt, amtToken)
@@ -271,7 +261,7 @@ describe("Pool Factory Mina", () => {
   })
 
   it("cant mint token", async () => {
-    let txn = await Mina.transaction(senderAccount, async () => {
+    const txn = await Mina.transaction(senderAccount, async () => {
       AccountUpdate.fundNewAccount(senderAccount, 1)
       await zkPool.internal.mint({ address: senderAccount, amount: UInt64.one })
       await zkPool.approveAccountUpdate(zkPool.self)

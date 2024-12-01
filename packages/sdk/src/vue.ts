@@ -15,12 +15,12 @@ import { createLuminaDexMachine } from "./machines/luminadex"
 import { useActor } from "./machines/vue/useXstate"
 import { createWalletMachine } from "./machines/wallet"
 
-//xstate bindings
+// xstate bindings
 export * from "./machines/vue/useXstate"
 
 /**
  * GraphQL client
- *___________________________________________________________*/
+ * ___________________________________________________________ */
 
 const clientCache = new Map<string, Client>()
 
@@ -41,19 +41,21 @@ export const createMinaClient = (url: string) => {
 
 /**
  * Wallet
- *___________________________________________________________*/
+ * ___________________________________________________________ */
 
 const walletMachine = createWalletMachine({ createMinaClient })
-export { walletMachine }
+export type WalletMachine = typeof walletMachine
 
-type WalletMachine = typeof walletMachine
+export { walletMachine }
 
 export function useWallet(
 	...[options]: ConditionalRequired<
 		[
-			options?: ActorOptions<WalletMachine> & {
-				[K in RequiredActorOptionsKeys<WalletMachine>]: unknown
-			}
+			options?:
+				& ActorOptions<WalletMachine>
+				& {
+					[K in RequiredActorOptionsKeys<WalletMachine>]: unknown
+				}
 		],
 		IsNotNever<RequiredActorOptionsKeys<WalletMachine>>
 	>
@@ -67,7 +69,7 @@ export function useWallet(
 
 /**
  * Dex
- *___________________________________________________________*/
+ * ___________________________________________________________ */
 
 const dexMachine = createLuminaDexMachine()
 export { dexMachine }
@@ -77,9 +79,11 @@ export type DexMachine = typeof dexMachine
 export function useDex(
 	...[options]: ConditionalRequired<
 		[
-			options?: ActorOptions<DexMachine> & {
-				[K in RequiredActorOptionsKeys<DexMachine>]: unknown
-			}
+			options?:
+				& ActorOptions<DexMachine>
+				& {
+					[K in RequiredActorOptionsKeys<DexMachine>]: unknown
+				}
 		],
 		IsNotNever<RequiredActorOptionsKeys<DexMachine>>
 	>
@@ -90,8 +94,3 @@ export function useDex(
 } {
 	return useActor(dexMachine, options)
 }
-const { send: sendWallet } = useWallet()
-
-const { send } = useDex({ input: { addresses: { pool: "", factory: "", faucet: "" } } })
-
-send({ type: "Swap", user: "" })

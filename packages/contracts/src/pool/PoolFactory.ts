@@ -1,33 +1,20 @@
+import { AccountUpdateForest, DeployArgs, VerificationKey } from "o1js"
 import {
-  Account,
   AccountUpdate,
-  AccountUpdateForest,
-  assert,
   Bool,
-  Circuit,
-  CircuitString,
-  DeployArgs,
-  fetchAccount,
   Field,
-  MerkleList,
   method,
   Permissions,
-  Poseidon,
-  Provable,
   PublicKey,
-  Reducer,
-  SmartContract,
   State,
   state,
   Struct,
-  TokenContract,
   TokenContractV2,
   TokenId,
-  TransactionVersion,
-  UInt64,
-  VerificationKey,
+  UInt64
 } from "o1js"
-import { FungibleToken, Pool, PoolData, PoolTokenHolder } from "../indexpool.js"
+
+import { FungibleToken, PoolData } from "../indexpool.js"
 
 export const contractData =
   "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"
@@ -46,7 +33,7 @@ export class PoolCreationEvent extends Struct({
   sender: PublicKey,
   poolAddress: PublicKey,
   token0Address: PublicKey,
-  token1Address: PublicKey,
+  token1Address: PublicKey
 }) {
   constructor(value: {
     sender: PublicKey
@@ -67,7 +54,7 @@ export class PoolFactory extends TokenContractV2 {
 
   events = {
     poolAdded: PoolCreationEvent,
-    upgrade: Field,
+    upgrade: Field
   }
 
   async deploy(args: PoolDeployProps) {
@@ -78,7 +65,7 @@ export class PoolFactory extends TokenContractV2 {
     this.account.tokenSymbol.set(args.symbol)
     this.poolData.set(args.poolData)
 
-    let permissions = Permissions.default()
+    const permissions = Permissions.default()
     permissions.access = Permissions.proofOrSignature()
     permissions.setPermissions = Permissions.impossible()
     permissions.setVerificationKey = Permissions.VerificationKey.proofOrSignature()
@@ -118,7 +105,7 @@ export class PoolFactory extends TokenContractV2 {
 
     const fungibleToken = new FungibleToken(token)
 
-    let tokenAccount = AccountUpdate.create(token, this.deriveTokenId())
+    const tokenAccount = AccountUpdate.create(token, this.deriveTokenId())
     // if the balance is not zero, so a pool already exist for this token
     tokenAccount.account.balance.requireEquals(UInt64.zero)
 
@@ -138,15 +125,15 @@ export class PoolFactory extends TokenContractV2 {
         setVerificationKey: Permissions.VerificationKey.proofDuringCurrentVersion(),
         send: Permissions.proof(),
         setDelegate: Permissions.proof(),
-        setPermissions: Permissions.impossible(),
-      },
+        setPermissions: Permissions.impossible()
+      }
     }
 
     // set poolAccount initial state, mina is equal to an empty field
-    let token0Fields = PublicKey.empty().toFields()
-    let token1Fields = token.toFields()
-    let poolDataAddress = this.poolData.getAndRequireEquals()
-    let poolDataFields = poolDataAddress.toFields()
+    const token0Fields = PublicKey.empty().toFields()
+    const token1Fields = token.toFields()
+    const poolDataAddress = this.poolData.getAndRequireEquals()
+    const poolDataFields = poolDataAddress.toFields()
 
     poolAccount.body.update.appState = [
       { isSome: Bool(true), value: token0Fields[0] },
@@ -156,7 +143,7 @@ export class PoolFactory extends TokenContractV2 {
       { isSome: Bool(true), value: poolDataFields[0] },
       { isSome: Bool(true), value: poolDataFields[1] },
       { isSome: Bool(true), value: Field(0) },
-      { isSome: Bool(true), value: Field(0) },
+      { isSome: Bool(true), value: Field(0) }
     ]
 
     // Liquidity token default name
@@ -170,7 +157,7 @@ export class PoolFactory extends TokenContractV2 {
     // set pool token holder account vk and permission
     poolHolderAccount.body.update.verificationKey = {
       isSome: Bool(true),
-      value: { data: contractHolderData, hash: contractHolderHash },
+      value: { data: contractHolderData, hash: contractHolderHash }
     }
     poolHolderAccount.body.update.permissions = {
       isSome: Bool(true),
@@ -178,8 +165,8 @@ export class PoolFactory extends TokenContractV2 {
         ...Permissions.default(),
         setVerificationKey: Permissions.VerificationKey.proofDuringCurrentVersion(),
         send: Permissions.proof(),
-        setPermissions: Permissions.impossible(),
-      },
+        setPermissions: Permissions.impossible()
+      }
     }
 
     poolHolderAccount.body.update.appState = [
@@ -190,7 +177,7 @@ export class PoolFactory extends TokenContractV2 {
       { isSome: Bool(true), value: poolDataFields[0] },
       { isSome: Bool(true), value: poolDataFields[1] },
       { isSome: Bool(true), value: Field(0) },
-      { isSome: Bool(true), value: Field(0) },
+      { isSome: Bool(true), value: Field(0) }
     ]
 
     // create a liquidity token holder as this new address
@@ -205,8 +192,8 @@ export class PoolFactory extends TokenContractV2 {
         setVerificationKey: Permissions.VerificationKey.impossibleDuringCurrentVersion(),
         // This is necessary in order to allow burn circulation supply without signature
         send: Permissions.none(),
-        setPermissions: Permissions.impossible(),
-      },
+        setPermissions: Permissions.impossible()
+      }
     }
 
     // we mint one token to check if this pool exist
@@ -222,8 +209,8 @@ export class PoolFactory extends TokenContractV2 {
         sender,
         poolAddress: newAccount,
         token0Address: PublicKey.empty(),
-        token1Address: token,
-      }),
+        token1Address: token
+      })
     )
   }
 
@@ -240,7 +227,7 @@ export class PoolFactory extends TokenContractV2 {
 
     publicKey.isEmpty().assertFalse("publicKey is empty")
 
-    let tokenAccount = AccountUpdate.create(publicKey, this.deriveTokenId())
+    const tokenAccount = AccountUpdate.create(publicKey, this.deriveTokenId())
     // if the balance is not zero, so a pool already exist for this token
     tokenAccount.account.balance.requireEquals(UInt64.zero)
 
@@ -260,15 +247,15 @@ export class PoolFactory extends TokenContractV2 {
         setVerificationKey: Permissions.VerificationKey.proofDuringCurrentVersion(),
         send: Permissions.proof(),
         setDelegate: Permissions.proof(),
-        setPermissions: Permissions.impossible(),
-      },
+        setPermissions: Permissions.impossible()
+      }
     }
 
     // set poolAccount initial state
-    let token0Fields = token0.toFields()
-    let token1Fields = token1.toFields()
-    let poolDataAddress = this.poolData.getAndRequireEquals()
-    let poolDataFields = poolDataAddress.toFields()
+    const token0Fields = token0.toFields()
+    const token1Fields = token1.toFields()
+    const poolDataAddress = this.poolData.getAndRequireEquals()
+    const poolDataFields = poolDataAddress.toFields()
 
     poolAccount.body.update.appState = [
       { isSome: Bool(true), value: token0Fields[0] },
@@ -278,7 +265,7 @@ export class PoolFactory extends TokenContractV2 {
       { isSome: Bool(true), value: poolDataFields[0] },
       { isSome: Bool(true), value: poolDataFields[1] },
       { isSome: Bool(true), value: Field(0) },
-      { isSome: Bool(true), value: Field(0) },
+      { isSome: Bool(true), value: Field(0) }
     ]
 
     // Liquidity token default name
@@ -294,7 +281,7 @@ export class PoolFactory extends TokenContractV2 {
     // set pool token holder account vk and permission
     poolHolderAccount0.body.update.verificationKey = {
       isSome: Bool(true),
-      value: { data: contractHolderData, hash: contractHolderHash },
+      value: { data: contractHolderData, hash: contractHolderHash }
     }
     poolHolderAccount0.body.update.permissions = {
       isSome: Bool(true),
@@ -302,8 +289,8 @@ export class PoolFactory extends TokenContractV2 {
         ...Permissions.default(),
         setVerificationKey: Permissions.VerificationKey.proofDuringCurrentVersion(),
         send: Permissions.proof(),
-        setPermissions: Permissions.impossible(),
-      },
+        setPermissions: Permissions.impossible()
+      }
     }
 
     poolHolderAccount0.body.update.appState = [
@@ -314,7 +301,7 @@ export class PoolFactory extends TokenContractV2 {
       { isSome: Bool(true), value: poolDataFields[0] },
       { isSome: Bool(true), value: poolDataFields[1] },
       { isSome: Bool(true), value: Field(0) },
-      { isSome: Bool(true), value: Field(0) },
+      { isSome: Bool(true), value: Field(0) }
     ]
 
     const poolHolderAccount1 = AccountUpdate.createSigned(newAccount, tokenId1)
@@ -324,7 +311,7 @@ export class PoolFactory extends TokenContractV2 {
     // set pool token holder account vk and permission
     poolHolderAccount1.body.update.verificationKey = {
       isSome: Bool(true),
-      value: { data: contractHolderData, hash: contractHolderHash },
+      value: { data: contractHolderData, hash: contractHolderHash }
     }
     poolHolderAccount1.body.update.permissions = {
       isSome: Bool(true),
@@ -332,8 +319,8 @@ export class PoolFactory extends TokenContractV2 {
         ...Permissions.default(),
         setVerificationKey: Permissions.VerificationKey.proofDuringCurrentVersion(),
         send: Permissions.proof(),
-        setPermissions: Permissions.impossible(),
-      },
+        setPermissions: Permissions.impossible()
+      }
     }
 
     poolHolderAccount1.body.update.appState = [
@@ -344,7 +331,7 @@ export class PoolFactory extends TokenContractV2 {
       { isSome: Bool(true), value: poolDataFields[0] },
       { isSome: Bool(true), value: poolDataFields[1] },
       { isSome: Bool(true), value: Field(0) },
-      { isSome: Bool(true), value: Field(0) },
+      { isSome: Bool(true), value: Field(0) }
     ]
 
     // create a liquidity token holder as this new address
@@ -359,8 +346,8 @@ export class PoolFactory extends TokenContractV2 {
         setVerificationKey: Permissions.VerificationKey.impossibleDuringCurrentVersion(),
         // This is necessary in order to allow burn circulation supply without signature
         send: Permissions.none(),
-        setPermissions: Permissions.impossible(),
-      },
+        setPermissions: Permissions.impossible()
+      }
     }
 
     // we mint one token to check if this pool exist
@@ -375,7 +362,7 @@ export class PoolFactory extends TokenContractV2 {
     const sender = this.sender.getUnconstrainedV2()
     this.emitEvent(
       "poolAdded",
-      new PoolCreationEvent({ sender, poolAddress: newAccount, token0Address: token0, token1Address: token1 }),
+      new PoolCreationEvent({ sender, poolAddress: newAccount, token0Address: token0, token1Address: token1 })
     )
   }
 }

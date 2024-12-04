@@ -1,8 +1,16 @@
-import { PublicKey } from "o1js"
+import { MerkleTree, Poseidon, PublicKey, Signature } from "o1js"
 import { AccountUpdate, Bool, Mina, PrivateKey, UInt64, UInt8 } from "o1js"
 import { beforeAll, beforeEach, describe, expect, it } from "vitest"
 
-import { FungibleToken, FungibleTokenAdmin, mulDiv, Pool, PoolData, PoolFactory, PoolTokenHolder } from "../dist"
+import {
+  FungibleToken,
+  FungibleTokenAdmin,
+  mulDiv,
+  Pool,
+  PoolFactory,
+  PoolTokenHolder,
+  SignerMerkleWitness
+} from "../dist"
 
 const proofsEnabled = false
 
@@ -13,6 +21,7 @@ describe("Pool Factory Mina", () => {
     senderKey: PrivateKey,
     bobAccount: Mina.TestPublicKey,
     bobKey: PrivateKey,
+    merkle: MerkleTree,
     aliceAccount: Mina.TestPublicKey,
     aliceKey: PrivateKey,
     dylanAccount: Mina.TestPublicKey,
@@ -22,9 +31,6 @@ describe("Pool Factory Mina", () => {
     zkPoolAddress: PublicKey,
     zkPoolPrivateKey: PrivateKey,
     zkPool: Pool,
-    zkPoolDataAddress: PublicKey,
-    zkPoolDataPrivateKey: PrivateKey,
-    zkPoolData: PoolData,
     zkTokenAdminAddress: PublicKey,
     zkTokenAdminPrivateKey: PrivateKey,
     zkTokenAdmin: FungibleTokenAdmin,
@@ -41,7 +47,6 @@ describe("Pool Factory Mina", () => {
       console.time("compile pool")
       await FungibleTokenAdmin.compile()
       await FungibleToken.compile()
-      await PoolData.compile()
       await PoolFactory.compile()
       await Pool.compile()
       await PoolTokenHolder.compile()
@@ -75,10 +80,6 @@ describe("Pool Factory Mina", () => {
     zkPoolAddress = zkPoolPrivateKey.toPublicKey()
     zkPool = new Pool(zkPoolAddress)
 
-    zkPoolDataPrivateKey = PrivateKey.random()
-    zkPoolDataAddress = zkPoolDataPrivateKey.toPublicKey()
-    zkPoolData = new PoolData(zkPoolDataAddress)
-
     zkTokenAdminPrivateKey = PrivateKey.random()
     zkTokenAdminAddress = zkTokenAdminPrivateKey.toPublicKey()
     zkTokenAdmin = new FungibleTokenAdmin(zkTokenAdminAddress)
@@ -89,21 +90,21 @@ describe("Pool Factory Mina", () => {
 
     tokenHolder = new PoolTokenHolder(zkPoolAddress, zkToken.deriveTokenId())
 
-    const txn0 = await Mina.transaction(deployerAccount, async () => {
-      AccountUpdate.fundNewAccount(deployerAccount, 1)
-      await zkPoolData.deploy({
-        owner: bobAccount,
-        protocol: aliceAccount,
-        delegator: dylanAccount
-      })
-    })
-    await txn0.prove()
-    // this tx needs .sign(), because `deploy()` adds an account update that requires signature authorization
-    await txn0.sign([deployerKey, zkPoolDataPrivateKey]).send()
+    merkle = new MerkleTree(32)
+    merkle.setLeaf(0n, Poseidon.hash(bobAccount.toFields()))
+    merkle.setLeaf(1n, Poseidon.hash(aliceAccount.toFields()))
+    const root = merkle.getRoot()
 
     const txn = await Mina.transaction(deployerAccount, async () => {
       AccountUpdate.fundNewAccount(deployerAccount, 4)
-      await zkApp.deploy({ symbol: "FAC", src: "https://luminadex.com/", poolData: zkPoolDataAddress })
+      await zkApp.deploy({
+        symbol: "FAC",
+        src: "https://luminadex.com/",
+        owner: bobAccount,
+        protocol: aliceAccount,
+        delegator: dylanAccount,
+        approvedSigner: root
+      })
       await zkTokenAdmin.deploy({
         adminPublicKey: deployerAccount
       })
@@ -121,9 +122,13 @@ describe("Pool Factory Mina", () => {
     // this tx needs .sign(), because `deploy()` adds an account update that requires signature authorization
     await txn.sign([deployerKey, zkAppPrivateKey, zkTokenAdminPrivateKey, zkTokenPrivateKey]).send()
 
+    const signature = Signature.create(zkTokenPrivateKey, zkPoolAddress.toFields())
+    const witness = merkle.getWitness(0n)
+    const circuitWitness = new SignerMerkleWitness(witness)
+
     const txn3 = await Mina.transaction(deployerAccount, async () => {
       AccountUpdate.fundNewAccount(deployerAccount, 4)
-      await zkApp.createPool(zkPoolAddress, zkTokenAddress)
+      await zkApp.createPool(zkPoolAddress, zkTokenAddress, zkTokenAddress, signature, circuitWitness)
     })
 
     // console.log("Pool creation", txn3.toPretty());
@@ -241,6 +246,7 @@ describe("Pool Factory Mina", () => {
 
     let liquidityUser = Mina.getBalance(senderAccount, zkPool.deriveTokenId())
     const expected = amt.value.add(amtToken.value).sub(Pool.minimunLiquidity.value)
+    const totalLiquidity = Mina.getBalance(zkPoolAddress, zkPool.deriveTokenId())
     console.log("liquidity user", liquidityUser.toString())
     expect(liquidityUser.value).toEqual(expected)
 
@@ -248,7 +254,7 @@ describe("Pool Factory Mina", () => {
     const amtToken2 = UInt64.from(5 * 10 ** 9)
     txn = await Mina.transaction(deployerAccount, async () => {
       AccountUpdate.fundNewAccount(deployerAccount, 1)
-      await zkPool.supplyLiquidity(amtMina, amtToken2, amt, amtToken, liquidityUser)
+      await zkPool.supplyLiquidity(amtMina, amtToken2, amt, amtToken, totalLiquidity)
     })
     console.log("add liquidity from mina", txn.toPretty())
     console.log("add liquidity from mina au", txn.transaction.accountUpdates.length)
@@ -286,7 +292,14 @@ describe("Pool Factory Mina", () => {
 
     const txn2 = await Mina.transaction(senderAccount, async () => {
       AccountUpdate.fundNewAccount(senderAccount, 2)
-      await tokenHolder.swapFromMina(bobAccount, UInt64.from(5), amountIn, UInt64.from(1), balanceMax, balanceMin)
+      await tokenHolder.swapFromMinaToToken(
+        bobAccount,
+        UInt64.from(5),
+        amountIn,
+        UInt64.from(1),
+        balanceMax,
+        balanceMin
+      )
       await zkToken.approveAccountUpdate(tokenHolder.self)
     })
     console.log("swap from mina", txn2.toPretty())
@@ -333,7 +346,7 @@ describe("Pool Factory Mina", () => {
     const userMinaBalBefore = Mina.getBalance(senderAccount)
 
     const txn2 = await Mina.transaction(senderAccount, async () => {
-      await zkPool.swapTokenForMina(bobAccount, UInt64.from(5), amountIn, UInt64.from(1), balanceMax, balanceMin)
+      await zkPool.swapFromTokenToMina(bobAccount, UInt64.from(5), amountIn, UInt64.from(1), balanceMax, balanceMin)
     })
     console.log("swap from token", txn2.toPretty())
     console.log("swap from token au", txn2.transaction.accountUpdates.length)

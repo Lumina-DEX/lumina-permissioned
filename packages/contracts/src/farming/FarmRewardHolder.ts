@@ -1,6 +1,6 @@
-import { DeployArgs, VerificationKey } from "o1js"
 import {
   AccountUpdate,
+  DeployArgs,
   Field,
   method,
   Permissions,
@@ -9,7 +9,8 @@ import {
   State,
   state,
   TokenId,
-  UInt64
+  UInt64,
+  VerificationKey
 } from "o1js"
 
 import { BalanceChangeEvent } from "../indexpool.js"

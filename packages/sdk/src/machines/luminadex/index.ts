@@ -286,7 +286,7 @@ export const createLuminaDexMachine = () => {
 				wallet: {
 					actor: wallet,
 					account: wallet.getSnapshot().context.account,
-					network: "mina:testnet"
+					network: wallet.getSnapshot().context.currentNetwork
 				},
 				addresses: { pool, faucet, factory },
 				frontendFee: { destination, amount },

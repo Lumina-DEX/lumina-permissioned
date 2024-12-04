@@ -2,68 +2,60 @@
 
 ## React usage
 
-Provide the graphql client to the app :
+The easiest way to get started would be to combine the SDK with React context to create global state for the Wallet and Dex machines.
+
+1. Use `createWallet` and `createDex` to start the state machines.
+2. Use React Context to provide the Wallet and Dex actors to the rest of the application.
 
 ```jsx
-import { Provider, createMinaClient } from '@zeko/sdk/react';
+import { type LuminaContext as LC, createDex, createWallet } from "@lumina-dex/sdk"
+import { useSelector } from "@lumina-dex/sdk/react"
+import { createContext } from "react"
 
-const client = createMinaClient("https://devnet.zeko.io/graphql")
+const Wallet = createWallet()
 
-const App = () => (
-  < Provider value={client}>
-    <YourRoutes />
-  </>
-);
-```
+const Dex = createDex({
+	addresses: { faucet: "", factory: "", pool: "" },
+	wallet: Wallet,
+	frontendFee: { destination: "", amount: 0 }
+})
 
-Create a custom hook to interact with the wallet.
+const Context: LC = { Dex, Wallet }
 
-```jsx
-import { useSelector, useWallet } from "@zeko/sdk/react"
-import { useEffect } from "react"
+export const LuminaContext = createContext(Context)
 
-export const useUserWallet = () => {
-	const [snapshot, send, actorRef] = useWallet()
-
-	const address = snapshot.context.accounts[0] ?? ""
-
-	const displayAddress = `${address?.slice(0, 6)}...${address?.slice(-4)}`
-
-	const currentNetwork = snapshot.context.currentNetwork
-
-	const minaBalances = useSelector(
-		actorRef,
-		(state) => state.context.minaBalances
+export function App() {
+	return (
+		<LuminaContext.Provider value={Context}>
+			<div>Rest of the application ...</div>
+		</LuminaContext.Provider>
 	)
-	const zekoBalances = useSelector(
-		actorRef,
-		(state) => state.context.zekoBalances
-	)
-
-	const walletLoaded = snapshot.matches("READY")
-		|| snapshot.matches("SWITCHING_NETWORK")
-		|| snapshot.matches("FETCHING_BALANCE")
-
-	useEffect(() => {
-		if (snapshot.matches("INIT")) {
-			send({ type: "Connect" })
-		}
-	}, [snapshot])
-
-	return {
-		send,
-		snapshot,
-		actorRef,
-		address,
-		displayAddress,
-		currentNetwork,
-		minaBalances,
-		zekoBalances,
-		walletLoaded
-	}
 }
 ```
 
-`useWallet` follows the xstate convention and returns a snapshot, a send function and an actorRef.
+Then in your components
+
+```jsx
+import { useSelector } from "@lumina-dex/sdk/react"
+import { useContext } from "react"
+import { LuminaContext } from "./somewhere"
+
+export function SomeComponent() {
+	const { Wallet } = useContext(LuminaContext)
+	// Read the state of the Wallet machine
+	const isReady = useSelector(Wallet, (state) => state.matches("READY"))
+	// Dispatch an event to the Wallet machine
+	const connect = () => Wallet.send({ type: "Connect" })
+
+	return (
+		<div>
+			{!isReady
+				? <button onClick={connect}>Connect</button>
+				: <p>Wallet is ready</p>}
+		</div>
+	)
+}
+```
+
 Refer to xstate documentation for more information :
 https://stately.ai/docs/xstate-react

@@ -1,8 +1,9 @@
-import { AccountUpdateForest, DeployArgs, UInt64, VerificationKey } from "o1js"
 import {
   AccountUpdate,
+  AccountUpdateForest,
   assert,
   Bool,
+  DeployArgs,
   Field,
   Int64,
   method,
@@ -12,7 +13,9 @@ import {
   State,
   state,
   TokenContractV2,
-  Types
+  Types,
+  UInt64,
+  VerificationKey
 } from "o1js"
 
 import { BalanceChangeEvent } from "../indexpool.js"

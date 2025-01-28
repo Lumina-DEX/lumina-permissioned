@@ -30,20 +30,20 @@ export const archiveUrls = {
 
 // TODO: Add missing factories
 export const luminadexFactories = {
-	"mina:testnet": "B62qnHMCGiqjFzC25yuKBjxC5yXFqfozsfgrjR22Gk2BdjJrmQqNVqi"
+	"mina:testnet": "B62qo8GFnNj3JeYq6iUUXeHq5bqJqPQmT5C2cTU7YoVc4mgiC8XEjHd"
 } as const
 
 // TODO: Add missing faucets
 export const chainFaucets = {
 	"mina:testnet": {
-		address: "B62qnigaSA2ZdhmGuKfQikjYKxb6V71mLq3H8RZzvkH4htHBEtMRUAG",
-		tokenAddress: "B62qjDaZ2wDLkFpt7a7eJme6SAJDuc3R3A2j2DRw7VMmJAFahut7e8w",
-		tokenId: "wTRtTRnW7hZCQSVgsuMVJRvnS1xEAbRRMWyaaJPkQsntSNh67n"
+		address: "B62qkUoCRMDTndXpGan1g7iVPAGnXASVT3fqV8QnGqJ5KNiRhnS8nyq",
+		tokenAddress: "B62qn71xMXqLmAT83rXW3t7jmnEvezaCYbcnb9NWYz85GTs41VYGDha",
+		tokenId: "wZmPhCrDVraeYcB3By5USJCJ9KCMLYYp497Zuby2b8Rq3wTcbn"
 	},
-	"mina:mainnet": { address: "NOT Implemented", tokenAddress: "", tokenId: "Not Implemented" },
-	"mina:berkeley": { address: "testnet-address-2", tokenAddress: "", tokenId: "123" },
-	"zeko:testnet": { address: "zeko-test", tokenAddress: "", tokenId: "123" },
-	"zeko:mainnet": { address: "zeko-test", tokenAddress: "", tokenId: "123" }
+	"mina:mainnet": { address: "NOT Implemented", tokenAddress: "", tokenId: "" },
+	"mina:berkeley": { address: "testnet-address-2", tokenAddress: "", tokenId: "" },
+	"zeko:testnet": { address: "zeko-test", tokenAddress: "", tokenId: "" },
+	"zeko:mainnet": { address: "zeko-test", tokenAddress: "", tokenId: "" }
 } as const
 
 export const MINA_ADDRESS = "MINA"

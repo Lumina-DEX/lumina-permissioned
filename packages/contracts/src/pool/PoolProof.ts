@@ -3,6 +3,9 @@ import {
     AccountUpdateForest,
     assert,
     Bool,
+    DynamicProof,
+    FeatureFlags,
+    Field,
     Int64,
     method,
     Permissions,
@@ -47,3 +50,15 @@ export const KYCProgram = ZkProgram({
 });
 export let MainProof_ = ZkProgram.Proof(KYCProgram);
 export class MainProof extends MainProof_ { }
+
+// given a zkProgram, we compute the feature flags that we need in order to verify proofs that were generated
+const featureFlags = await FeatureFlags.fromZkProgram(KYCProgram);
+
+export class SideloadedProgramProof extends DynamicProof<PublicKey, PublicKey> {
+    static publicInputType = PublicKey;
+    static publicOutputType = PublicKey;
+    static maxProofsVerified = 0 as const;
+
+    // we use the feature flags that we computed from the `sideloadedProgram` ZkProgram
+    static featureFlags = featureFlags;
+}

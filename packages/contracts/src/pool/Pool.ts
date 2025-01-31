@@ -21,6 +21,7 @@ import {
 import { FungibleToken, mulDiv, PoolFactory, UpdateUserEvent, UpdateVerificationKeyEvent } from "../indexpool.js"
 
 import { checkToken, IPool } from "./IPoolState.js"
+import { SideloadedProgramProof } from "./PoolProof.js"
 
 export class SwapEvent extends Struct({
   sender: PublicKey,
@@ -218,6 +219,17 @@ export class Pool extends TokenContract implements IPool {
 
   @method.returns(UInt64)
   async supplyFirstLiquidities(amountMina: UInt64, amountToken: UInt64) {
+    const liquidityUser = await this.supply(amountMina, amountToken, UInt64.zero, UInt64.zero, UInt64.zero, true, true)
+    return liquidityUser
+  }
+
+  @method.returns(UInt64)
+  async supplyFirstLiquiditiesProof(amountMina: UInt64, amountToken: UInt64, proof: SideloadedProgramProof, vk: VerificationKey) {
+    const sender = this.sender.getAndRequireSignature();
+    proof.publicInput.assertEquals(sender);
+    proof.verify(vk);
+
+
     const liquidityUser = await this.supply(amountMina, amountToken, UInt64.zero, UInt64.zero, UInt64.zero, true, true)
     return liquidityUser
   }

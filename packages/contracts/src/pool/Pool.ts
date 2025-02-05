@@ -21,7 +21,6 @@ import {
 import { FungibleToken, mulDiv, PoolFactory, UpdateUserEvent, UpdateVerificationKeyEvent } from "../indexpool.js"
 
 import { checkToken, IPool } from "./IPoolState.js"
-import { SideloadedProgramProof } from "./PoolProof.js"
 
 export class SwapEvent extends Struct({
   sender: PublicKey,
@@ -224,17 +223,6 @@ export class Pool extends TokenContract implements IPool {
   }
 
   @method.returns(UInt64)
-  async supplyFirstLiquiditiesProof(amountMina: UInt64, amountToken: UInt64, proof: SideloadedProgramProof, vk: VerificationKey) {
-    const sender = this.sender.getAndRequireSignature();
-    proof.publicInput.assertEquals(sender);
-    proof.verify(vk);
-
-
-    const liquidityUser = await this.supply(amountMina, amountToken, UInt64.zero, UInt64.zero, UInt64.zero, true, true)
-    return liquidityUser
-  }
-
-  @method.returns(UInt64)
   async supplyLiquidity(
     amountMina: UInt64,
     amountToken: UInt64,
@@ -427,7 +415,7 @@ export class Pool extends TokenContract implements IPool {
     await this.internal.burn({ address: sender, amount: liquidityAmount })
   }
 
-  private async supply(
+  protected async supply(
     amountToken0: UInt64,
     amountToken1: UInt64,
     reserveToken0Max: UInt64,
@@ -512,7 +500,7 @@ export class Pool extends TokenContract implements IPool {
     return liquidityUser
   }
 
-  private async sendTokenAccount(tokenAccount: AccountUpdate, tokenAddress: PublicKey, amount: UInt64) {
+  protected async sendTokenAccount(tokenAccount: AccountUpdate, tokenAddress: PublicKey, amount: UInt64) {
     const tokenContract = new FungibleToken(tokenAddress)
     const sender = this.sender.getUnconstrained()
     sender.equals(this.address).assertFalse("Can't transfer to/from the pool account")

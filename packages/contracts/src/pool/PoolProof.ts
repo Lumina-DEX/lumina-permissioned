@@ -3,17 +3,12 @@ import {
   AccountUpdateForest,
   assert,
   Bool,
-  DynamicProof,
-  FeatureFlags,
   Field,
   Int64,
   method,
   Permissions,
-  Poseidon,
-  PrivateKey,
   Provable,
   PublicKey,
-  Signature,
   State,
   state,
   Struct,
@@ -21,63 +16,145 @@ import {
   TokenId,
   Types,
   UInt64,
-  VerificationKey,
-  ZkProgram
+  VerificationKey
 } from "o1js"
 
-// B62qoHtRmvtiZrsWFZDUxgiJ98DcWbvva5D31iDXKFGbCUqFEwtxBrw
-export const authorizeSigner = PrivateKey.fromBase58("EKE2f1KypNKvwd19SpvBhtkackD44JrKBomdvPERQsbxDiUE8Big")
-const aurthorizedPublicKey = authorizeSigner.toPublicKey()
+import { FungibleToken, mulDiv, PoolFactory, UpdateUserEvent, UpdateVerificationKeyEvent } from "../indexpool.js"
 
-export class KycInfo extends Struct({
-  sender: PublicKey,
-  checkCompany: Bool,
-  companyId: Field
-}) {
-  constructor(value: {
-    sender: PublicKey
-    checkCompany: Bool
-    companyId: Field
-  }) {
-    super(value)
+import { checkToken, IPool } from "./IPoolState.js"
+import { SideloadedProgramProof } from "./KycProof.js"
+import { Pool } from "./Pool.js"
+
+/**
+ * Pool contract for Lumina dex (Future implementation for direct mina token support)
+ */
+export class PoolProof extends Pool {
+  @state(Field)
+  verifierId = State<Field>()
+
+  async deploy() {
+    await super.deploy()
+
+    Bool(false).assertTrue("You can't directly deploy a pool")
   }
 
-  hash(): Field {
-    return Poseidon.hash(this.sender.toFields().concat(this.checkCompany.toFields().concat(this.companyId.toFields())))
+  @method.returns(UInt64)
+  override async supplyFirstLiquidities(amountMina: UInt64, amountToken: UInt64) {
+    return UInt64.zero
   }
-}
 
-export const KYCProgram = ZkProgram({
-  name: "kyc",
-  publicInput: KycInfo,
+  @method.returns(UInt64)
+  async supplyFirstLiquiditiesProof(
+    amountMina: UInt64,
+    amountToken: UInt64,
+    proof: SideloadedProgramProof,
+    vk: VerificationKey
+  ) {
+    const sender = this.sender.getAndRequireSignature()
+    proof.publicInput.sender.assertEquals(sender)
+    proof.verify(vk)
 
-  methods: {
-    checkKyc: {
-      privateInputs: [Signature],
-
-      /**
-       * simple proof program where we supposed a dedicate signer,
-       * sign a message with an address and a boolean indicate if it's address is KYC
-       * @param publicInput address who check if is kyc
-       * @param signature signature created by a dedicated signer manage by our org
-       */
-      async method(publicInput: KycInfo, signature: Signature) {
-        signature.verify(aurthorizedPublicKey, publicInput.hash().toFields()).assertTrue("Invalid Signer")
-      }
-    }
+    const liquidityUser = await this.supply(amountMina, amountToken, UInt64.zero, UInt64.zero, UInt64.zero, true, true)
+    return liquidityUser
   }
-})
-export let MainProof_ = ZkProgram.Proof(KYCProgram)
-export class MainProof extends MainProof_ {}
 
-// given a zkProgram, we compute the feature flags that we need in order to verify proofs that were generated
-const featureFlags = await FeatureFlags.fromZkProgram(KYCProgram)
+  @method.returns(UInt64)
+  override async supplyLiquidity(
+    amountMina: UInt64,
+    amountToken: UInt64,
+    reserveMinaMax: UInt64,
+    reserveTokenMax: UInt64,
+    supplyMin: UInt64
+  ) {
+    return UInt64.zero
+  }
 
-export class SideloadedProgramProof extends DynamicProof<KycInfo, KycInfo> {
-  static publicInputType = KycInfo
-  static publicOutputType = KycInfo
-  static maxProofsVerified = 0 as const
+  @method.returns(UInt64)
+  async supplyLiquidityProof(
+    amountMina: UInt64,
+    amountToken: UInt64,
+    reserveMinaMax: UInt64,
+    reserveTokenMax: UInt64,
+    supplyMin: UInt64,
+    proof: SideloadedProgramProof,
+    vk: VerificationKey
+  ) {
+    const sender = this.sender.getAndRequireSignature()
+    proof.publicInput.sender.assertEquals(sender)
+    proof.verify(vk)
 
-  // we use the feature flags that we computed from the `sideloadedProgram` ZkProgram
-  static featureFlags = featureFlags
+    const liquidityUser = await this.supply(
+      amountMina,
+      amountToken,
+      reserveMinaMax,
+      reserveTokenMax,
+      supplyMin,
+      true,
+      false
+    )
+    return liquidityUser
+  }
+
+  @method.returns(UInt64)
+  override async supplyFirstLiquiditiesToken(amountToken0: UInt64, amountToken1: UInt64) {
+    return UInt64.zero
+  }
+
+  @method.returns(UInt64)
+  override async supplyLiquidityToken(
+    amountToken0: UInt64,
+    amountToken1: UInt64,
+    reserveToken0Max: UInt64,
+    reserveToken1Max: UInt64,
+    supplyMin: UInt64
+  ) {
+    return UInt64.zero
+  }
+
+  @method
+  override async swapFromTokenToMina(
+    frontend: PublicKey,
+    taxFeeFrontend: UInt64,
+    amountTokenIn: UInt64,
+    amountMinaOutMin: UInt64,
+    balanceInMax: UInt64,
+    balanceOutMin: UInt64
+  ) {
+  }
+
+  /**
+   * Don't call this method directly, use pool token holder or you will just lost mina
+   * @param sender use in the previous method
+   * @param amountMinaIn mina amount in
+   * @param balanceInMax actual reserve max in
+   */
+  @method
+  override async swapFromMinaToToken(
+    sender: PublicKey,
+    protocol: PublicKey,
+    amountMinaIn: UInt64,
+    balanceInMax: UInt64
+  ) {
+  }
+
+  /**
+   * Don't call this method directly, use withdrawLiquidity from PoolTokenHolder
+   */
+  @method.returns(UInt64)
+  override async withdrawLiquidity(
+    sender: PublicKey,
+    liquidityAmount: UInt64,
+    amountMinaMin: UInt64,
+    reserveMinaMin: UInt64,
+    supplyMax: UInt64
+  ) {
+    return UInt64.zero
+  }
+
+  /**
+   * Don't call this method directly, use withdrawLiquidityToken from PoolTokenHolder
+   */
+  @method
+  override async burnLiquidityToken(sender: PublicKey, liquidityAmount: UInt64, supplyMax: UInt64) {
+  }
 }

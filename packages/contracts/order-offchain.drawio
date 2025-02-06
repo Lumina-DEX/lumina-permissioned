@@ -55,7 +55,7 @@
                         <mxPoint x="440" y="250" as="targetPoint"/>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="23" value="Match &lt;br&gt;the orders" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="20" vertex="1" connectable="0">
+                <mxCell id="23" value="Create a verifiable proof" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="20" vertex="1" connectable="0">
                     <mxGeometry x="-0.1721" y="4" relative="1" as="geometry">
                         <mxPoint as="offset"/>
                     </mxGeometry>

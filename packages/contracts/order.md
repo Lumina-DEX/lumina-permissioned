@@ -33,11 +33,11 @@ Action state has some limitation, batch reducer didn't have same limitations, we
 
 ## Protokit
 
-We can create a solution with protokit
+We can use protokit to create the order book with all this functionnalities
 
 #### Advantage
 
-We can implement different solutions more easily than action state, I'm not sure how we can upgrade a protokit solution, also we can audit the solution
+We can implement different solutions more easily than action state, can be faster to generate a proof, also we can audit the solution ( but I don't know for the moment how we can upgrade a protokit solution)
 
 #### Disadvantage
 

@@ -60,14 +60,14 @@
                         <mxPoint as="offset"/>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="21" value="&lt;span style=&quot;font-size: 12px; font-weight: 400; background-color: rgb(42, 37, 47);&quot;&gt;Supply 2500 USDC for Alice&lt;/span&gt;" style="endArrow=classic;html=1;exitX=0;exitY=0;exitDx=0;exitDy=0;fontStyle=1" parent="1" source="19" target="3" edge="1">
+                <mxCell id="21" value="&lt;span style=&quot;font-size: 12px; font-weight: 400;&quot;&gt;&lt;font color=&quot;#ffffff&quot;&gt;Supply 2500 USDC for Alice&lt;/font&gt;&lt;/span&gt;" style="endArrow=classic;html=1;exitX=0;exitY=0;exitDx=0;exitDy=0;fontStyle=1;labelBackgroundColor=none;" parent="1" source="19" target="3" edge="1">
                     <mxGeometry width="50" height="50" relative="1" as="geometry">
                         <mxPoint x="400" y="460" as="sourcePoint"/>
                         <mxPoint x="110" y="320" as="targetPoint"/>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="22" value="&lt;meta charset=&quot;utf-8&quot;&gt;&lt;span style=&quot;color: rgb(240, 240, 240); font-family: Helvetica; font-size: 12px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: center; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial; float: none; display: inline !important;&quot;&gt;Supply 1 Eth to Bob&lt;/span&gt;&lt;br style=&quot;border-color: rgb(0, 0, 0); color: rgb(240, 240, 240); font-family: Helvetica; font-size: 12px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: center; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial;&quot;&gt;" style="endArrow=classic;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;labelBackgroundColor=none;" parent="1" source="19" target="2" edge="1">
-                    <mxGeometry x="0.8635" y="-18" width="50" height="50" relative="1" as="geometry">
+                <mxCell id="22" value="&lt;span style=&quot;font-family: Helvetica; font-size: 12px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: center; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial; float: none; display: inline !important;&quot;&gt;&lt;font color=&quot;#ffffff&quot;&gt;Supply 1 Eth to Bob&lt;/font&gt;&lt;/span&gt;" style="endArrow=classic;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;labelBackgroundColor=none;" parent="1" source="19" target="2" edge="1">
+                    <mxGeometry x="0.8644" y="-18" width="50" height="50" relative="1" as="geometry">
                         <mxPoint x="400" y="460" as="sourcePoint"/>
                         <mxPoint x="30" y="170" as="targetPoint"/>
                         <Array as="points">

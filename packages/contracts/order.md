@@ -27,7 +27,7 @@ Once the code is audited he can be trusted by the users, and different front can
 
 #### Disadvantage
 
-Action state has some limitation, batch reducer didn't have same limitations, we need to use o1js and it can be more difficult to implemet some algorithm, maybe we need to settle action state sometimes to prevent from too many data to handle, and any update need to upgrade the smartcontract
+Action state has some limitation, batch reducer didn't have same limitations, we need to use o1js and it can be more difficult to implement some algorithm, maybe we need to settle action state sometimes to prevent from too many data to handle, and any update need to upgrade the smartcontract
 
 ![Onchain action state schema](https://github.com/Lumina-DEX/lumina-permissioned/blob/feat/permissioned/packages/contracts/order-onchain.png?raw=true)
 
@@ -41,6 +41,6 @@ We can implement different solutions more easily than action state, can be faste
 
 #### Disadvantage
 
-Assets need to be bridge to protokit, we need to host the protokit solution and the app can't be use if the rollup is down, also the solution will be centralized
+Assets need to be bridge to protokit, some algorithm can be difficult to implement, we need to host the protokit solution and the app can't be use if the rollup is down, also the solution will be centralized
 
 ![Onchain action state schema](https://github.com/Lumina-DEX/lumina-permissioned/blob/feat/permissioned/packages/contracts/order-protokit.png?raw=true)

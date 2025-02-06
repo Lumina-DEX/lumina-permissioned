@@ -1,13 +1,13 @@
 <mxfile host="65bd71144e">
     <diagram id="ekgnhu82ao4ZkAPiSTXk" name="Page-1">
-        <mxGraphModel dx="1765" dy="905" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+        <mxGraphModel dx="821" dy="421" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
             <root>
                 <mxCell id="0"/>
                 <mxCell id="1" parent="0"/>
-                <mxCell id="2" value="&lt;span style=&quot;background-color: rgb(0, 0, 0);&quot;&gt;Bob&lt;/span&gt;" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;" parent="1" vertex="1">
+                <mxCell id="2" value="&lt;font style=&quot;background-color: rgb(0, 0, 0);&quot; color=&quot;#ffffff&quot;&gt;Bob&lt;/font&gt;" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;" parent="1" vertex="1">
                     <mxGeometry x="50" y="70" width="30" height="60" as="geometry"/>
                 </mxCell>
-                <mxCell id="3" value="&lt;span style=&quot;background-color: rgb(0, 0, 0);&quot;&gt;Alice&lt;/span&gt;" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;" parent="1" vertex="1">
+                <mxCell id="3" value="&lt;span style=&quot;background-color: rgb(0, 0, 0);&quot;&gt;&lt;font color=&quot;#ffffff&quot;&gt;Alice&lt;/font&gt;&lt;/span&gt;" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;" parent="1" vertex="1">
                     <mxGeometry x="100" y="350" width="30" height="60" as="geometry"/>
                 </mxCell>
                 <mxCell id="9" value="" style="endArrow=classic;html=1;" parent="1" source="2" target="8" edge="1">
@@ -49,7 +49,7 @@
                         <mxPoint x="440" y="200" as="targetPoint"/>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="21" value="&lt;span style=&quot;font-size: 12px; font-weight: 400; background-color: rgb(42, 37, 47);&quot;&gt;Supply 2500 USDC for Alice&lt;/span&gt;" style="endArrow=classic;html=1;fontStyle=1;exitX=0;exitY=0;exitDx=0;exitDy=0;" parent="1" source="19" target="3" edge="1">
+                <mxCell id="21" value="&lt;span style=&quot;font-size: 12px; font-weight: 400; background-color: rgb(0, 0, 0);&quot;&gt;&lt;font style=&quot;&quot; color=&quot;#ffffff&quot;&gt;Supply 2500 USDC for Alice&lt;/font&gt;&lt;/span&gt;" style="endArrow=classic;html=1;fontStyle=1;exitX=0;exitY=0;exitDx=0;exitDy=0;" parent="1" source="19" target="3" edge="1">
                     <mxGeometry width="50" height="50" relative="1" as="geometry">
                         <mxPoint x="360" y="380" as="sourcePoint"/>
                         <mxPoint x="120" y="370" as="targetPoint"/>
